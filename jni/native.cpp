@@ -31,6 +31,28 @@ struct Engine
     cv::Ptr<cv::VideoCapture> capture;
 };
 
+//
+tld::TLD tracker;
+bool isStart;
+int initialBB[4];
+//
+
+static void proceed(cv::Mat& mat)
+{
+	if( isStart )
+	{
+		initialBB[0] = 300;
+		initialBB[1] = 200;
+		initialBB[2] = 40;
+		initialBB[3] = 40;
+
+
+		isStart = false;
+	}
+
+	cv::rectangle(mat, cv::Point(initialBB[0], initialBB[1]), cv::Point(initialBB[0]+initialBB[2], initialBB[1]+initialBB[3]), cv::Scalar(100, 100, 200));
+}
+
 static cv::Size calc_optimal_camera_resolution(const char* supported, int width, int height)
 {
     int frame_width = 0;
@@ -169,7 +191,7 @@ void android_main(android_app* app)
     cv::Mat drawing_frame;
     std::queue<int64> time_queue;
 
-    tld::TLD tld;
+    isStart = true;
     // loop waiting for stuff to do.
     while (1)
     {
@@ -207,9 +229,13 @@ void android_main(android_app* app)
 
              char buffer[256];
              sprintf(buffer, "Display performance: %dx%d @ %.3f", drawing_frame.cols, drawing_frame.rows, fps);
+
              cv::putText(drawing_frame, std::string(buffer), cv::Point(8,64),
                          cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0,255,0,255));
+
+             proceed(drawing_frame);
              engine_draw_frame(&engine, drawing_frame);
+
         }
 
         if (time_queue.size() >= 2)
