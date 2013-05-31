@@ -169,7 +169,7 @@ void android_main(android_app* app)
     cv::Mat drawing_frame;
     std::queue<int64> time_queue;
 
-    //tld::TLD tld;
+    tld::TLD tld;
     // loop waiting for stuff to do.
     while (1)
     {

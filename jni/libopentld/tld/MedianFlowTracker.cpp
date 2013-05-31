@@ -28,7 +28,7 @@
 
 #include <cmath>
 
-#include "FBTrack.h"
+#include "../mftracker/FBTrack.h"
 
 using namespace cv;
 
