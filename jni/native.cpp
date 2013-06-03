@@ -18,6 +18,7 @@
 
 //
 #include "libopentld/tld/TLD.h"
+#include "libopentld/tld/TLDUtil.h"
 //
 #define  LOG_TAG    "OCV:libnative_activity"
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
@@ -35,22 +36,52 @@ struct Engine
 tld::TLD tracker;
 bool isStart;
 int initialBB[4];
+
+cv::Rect bb;
 //
 
 static void proceed(cv::Mat& mat)
 {
+
+
+	LOGI("1");
 	if( isStart )
 	{
-		initialBB[0] = 300;
-		initialBB[1] = 200;
+		LOGI("isStart = true");
+		initialBB[0] = 100;
+		initialBB[1] = 100;
 		initialBB[2] = 40;
 		initialBB[3] = 40;
 
 
 		isStart = false;
+
+        bb = tld::tldArrayToRect(initialBB);
+
+        cv::Mat grey(mat.size().width, mat.size().height, CV_8UC1);
+
+        cvtColor(mat, grey, CV_BGR2GRAY);
+
+        tracker.selectObject(grey, &bb);
+	}
+	else
+	{
+		LOGI("isStart = false");
+		tracker.processImage(mat);
 	}
 
-	cv::rectangle(mat, cv::Point(initialBB[0], initialBB[1]), cv::Point(initialBB[0]+initialBB[2], initialBB[1]+initialBB[3]), cv::Scalar(100, 100, 200));
+	//
+	LOGI("3");
+    if(tracker.currBB != NULL)
+		{
+    	LOGI("tracker.currBB != NULL");
+    	//	bb = tracker.currBB;
+			//fprintf(resultsFile, "%d %.2d %.2d %.2d %.2d %f\n", imAcq->currentFrame - 1, , , , , tld->currConf);
+    		cv::rectangle(mat, cv::Point(tracker.currBB->x, tracker.currBB->y), cv::Point(tracker.currBB->x+tracker.currBB->width, tracker.currBB->y+tracker.currBB->height), cv::Scalar(200, 200, 0));
+		}
+
+	//cv::rectangle(mat, cv::Point(initialBB[0], initialBB[1]), cv::Point(initialBB[0]+initialBB[2], initialBB[1]+initialBB[3]), cv::Scalar(100, 100, 200));
+
 }
 
 static cv::Size calc_optimal_camera_resolution(const char* supported, int width, int height)
@@ -230,8 +261,8 @@ void android_main(android_app* app)
              char buffer[256];
              sprintf(buffer, "Display performance: %dx%d @ %.3f", drawing_frame.cols, drawing_frame.rows, fps);
 
-             cv::putText(drawing_frame, std::string(buffer), cv::Point(8,64),
-                         cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0,255,0,255));
+             //cv::putText(drawing_frame, std::string(buffer), cv::Point(8,64),
+                         //cv::FONT_HERSHEY_COMPLEX_SMALL, 1, cv::Scalar(0,255,0,255));
 
              proceed(drawing_frame);
              engine_draw_frame(&engine, drawing_frame);
